@@ -31,7 +31,6 @@ export default function App() {
           <Hero />
           <Features />
           <HowItWorks />
-          <Stats />
           <LiveDemo />
           <TechStack />
           <CTA />
