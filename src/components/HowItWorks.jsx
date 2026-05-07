@@ -17,9 +17,9 @@ const STEPS = [
   {
     step: '02',
     icon: Globe,
-    title: 'Claude + Web Search',
-    desc: 'The request is sent to Claude Sonnet with a web_search tool attached. Claude decides autonomously whether to search the web — firing it for live data, skipping it for static knowledge.',
-    detail: ['Claude Sonnet API', 'Web Search Tool', 'Autonomous Tool Use', 'Source Grounding'],
+    title: 'Cerebras API & Autonomous Tools',
+    desc: 'The request is sent to the Cerebras API with a web_search tool attached. The model decides autonomously whether to search the web — firing it for live data, skipping it for static knowledge.',
+    detail: ['Cerebras API', 'Web Search Tool', 'Autonomous Tool Use', 'Source Grounding'],
   },
   {
     step: '03',
