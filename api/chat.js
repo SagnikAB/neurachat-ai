@@ -18,15 +18,23 @@ export default async function handler(req, res) {
 
     // Parse body if it's a string (Vercel sometimes doesn't auto-parse)
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body
+    const messages = body?.messages
+    if (!Array.isArray(messages) || messages.length === 0) {
+      return res.status(400).json({ error: 'Invalid request body: messages array is required.' })
+    }
 
-    const upstream = await fetch('https://api.cerebras.ai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
+    const upstream = await fetch(
+      'https://api.cerebras.ai/v1/chat/completions',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(18000),
       },
-      body: JSON.stringify(body),
-    })
+    )
 
     const contentType = upstream.headers.get('content-type') || ''
     const data = contentType.includes('application/json')

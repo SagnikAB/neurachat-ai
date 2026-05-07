@@ -24,6 +24,37 @@ const SUGGESTIONS = [
   'Write a Python web scraper',
 ]
 
+const API_ENDPOINTS = ['/api/chat', '/api/chat.js']
+const REQUEST_TIMEOUT_MS = 15000
+
+async function fetchWithTimeout(url, payload, timeoutMs = REQUEST_TIMEOUT_MS) {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), timeoutMs)
+
+  try {
+    return await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    })
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
+function localFallbackReply(message) {
+  const safe = message || 'your request'
+  return `I could not reach the live AI service right now, but I can still help.
+
+Quick answer about "${safe}":
+- Re-try in a few seconds (temporary network/deploy issue likely).
+- If you are testing deployment: verify Vercel API route and environment variables.
+- If you want, ask again and I can provide a detailed manual answer while the API is down.`
+}
+
 async function callCerebras(history) {
   const payload = {
     model: CEREBRAS_MODEL,
@@ -34,32 +65,33 @@ async function callCerebras(history) {
     ],
   }
 
-  let res = await fetch('/api/chat', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(payload),
-  })
+  let lastError = 'Unknown error'
 
-  if (res.status === 404) {
-    res = await fetch('/api/chat.js', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-    })
+  for (const endpoint of API_ENDPOINTS) {
+    try {
+      const res = await fetchWithTimeout(endpoint, payload)
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        const statusError = err.error?.message || `API error ${res.status}`
+        lastError = `${endpoint}: ${statusError}`
+        continue
+      }
+
+      const data = await res.json()
+      const text = data.choices?.[0]?.message?.content?.trim() || 'No response generated.'
+      return { text, degraded: false }
+    } catch (err) {
+      lastError = `${endpoint}: ${err?.name === 'AbortError' ? 'Request timeout' : err?.message || 'Request failed'}`
+    }
   }
 
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}))
-    throw new Error(err.error?.message || `API error ${res.status}`)
+  const userMessage = history.at(-1)?.content
+  return {
+    text: localFallbackReply(userMessage),
+    degraded: true,
+    error: lastError,
   }
-
-  const data = await res.json()
-  const text = data.choices?.[0]?.message?.content?.trim() || 'No response generated.'
-  return { text }
 }
 // Simple markdown-lite renderer: bold, inline code, line breaks
 function renderText(text) {
@@ -117,9 +149,12 @@ export default function LiveDemo() {
     setHistory(newHistory)
 
     try {
-      const { text: reply } = await callCerebras(newHistory)
+      const { text: reply, degraded, error: fetchError } = await callCerebras(newHistory)
       addMsg('ai', reply)
       setHistory(h => [...h, { role: 'assistant', content: reply }])
+      if (degraded) {
+        setError(`Live API unavailable (${fetchError}). Showing fallback response.`)
+      }
     } catch (e) {
       setError(e.message || 'Something went wrong. Check your API key.')
       setHistory(h => h.slice(0, -1))
