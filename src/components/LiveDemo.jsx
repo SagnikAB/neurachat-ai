@@ -25,11 +25,10 @@ const SUGGESTIONS = [
 ]
 
 async function callCerebras(history) {
-  const res = await fetch('https://api.cerebras.ai/v1/chat/completions', {
+  const res = await fetch('/api/chat', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${import.meta.env.VITE_CEREBRAS_API_KEY}`,
     },
     body: JSON.stringify({
       model: CEREBRAS_MODEL,
