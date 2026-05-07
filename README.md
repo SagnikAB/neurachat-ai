@@ -1,155 +1,144 @@
-# NeuraChat — AI Conversational Agent
+# NeuraChat
 
-> An AI-powered chatbot built with **Python**, **NLTK**, **LSTM (TensorFlow/Keras)**, and a **React + Tailwind CSS** frontend. Deployable to Vercel in under 30 minutes.
+Modern AI chatbot landing page + live chat demo built with React and deployed on Vercel.
 
-![MIT License](https://img.shields.io/badge/license-MIT-green)
-![Python 3.11](https://img.shields.io/badge/Python-3.11-blue)
-![React 18](https://img.shields.io/badge/React-18-61DAFB)
-![Deploy on Vercel](https://img.shields.io/badge/Deploy-Vercel-black)
+## Overview
 
----
+This project uses:
+- A Vite + React frontend (`src/`)
+- A Vercel serverless API route (`api/chat.js`)
+- Cerebras Chat Completions API as the model provider
 
-## 🧠 Architecture
+The frontend sends chat requests to `/api/chat`, and the server route forwards them to Cerebras using your server-side API key.
 
-```
-User Input
-    │
-    ▼
-NLTK Preprocessing (tokenize → lemmatize → bag-of-words)
-    │
-    ▼
-LSTM Model (TensorFlow/Keras) → Intent Classification
-    │
-    ▼
-Response Retrieval (JSON intent pool)
-    │
-    ▼
-API Response (FastAPI)
-```
+## Tech Stack
 
----
+- React 18
+- Vite 5
+- Tailwind CSS
+- Framer Motion
+- Vercel Serverless Functions
 
-## 📁 Project Structure
+## Project Structure
 
-```
-neurachat-ai/
-├── public/
-│   └── favicon.svg
-├── src/
-│   ├── components/
-│   │   ├── Navbar.jsx          # Sticky glassmorphism navbar
-│   │   ├── Hero.jsx            # Full-screen hero section
-│   │   ├── ChatPreview.jsx     # Animated chat widget (hero)
-│   │   ├── Features.jsx        # 6-card feature grid
-│   │   ├── HowItWorks.jsx      # 3-step pipeline explanation
-│   │   ├── Stats.jsx           # Animated statistics counters
-│   │   ├── LiveDemo.jsx        # Interactive chatbot demo
-│   │   ├── TechStack.jsx       # Marquee tech logos
-│   │   ├── Testimonials.jsx    # Review cards
-│   │   ├── CTA.jsx             # Final call-to-action
-│   │   └── Footer.jsx          # Site footer
-│   ├── utils/
-│   │   └── animations.js       # Framer Motion variants
-│   ├── App.jsx                 # Root component
-│   ├── main.jsx                # Entry point
-│   └── index.css               # Global styles + Tailwind
-├── index.html
-├── vite.config.js
-├── tailwind.config.js
-├── postcss.config.js
-├── vercel.json                 # Vercel deployment config
-└── package.json
+```txt
+chatbot-saas/
+├─ api/
+│  ├─ chat.js
+│  └─ chat/
+│     └─ index.js
+├─ public/
+├─ src/
+│  ├─ components/
+│  ├─ utils/
+│  ├─ App.jsx
+│  └─ main.jsx
+├─ vercel.json
+├─ package.json
+└─ README.md
 ```
 
----
+## Local Development
 
-## 🚀 Quick Start (Local)
+1. Install dependencies:
 
 ```bash
-# 1. Clone the repo
-git clone https://github.com/YOUR_USERNAME/neurachat-ai.git
-cd neurachat-ai
-
-# 2. Install dependencies
 npm install
-
-# 3. Start dev server
-npm run dev
-
-# 4. Open http://localhost:5173
 ```
 
----
-
-## ☁️ Deploy to Vercel
-
-### Option A — Vercel CLI
+2. Create `.env.local`:
 
 ```bash
-npm install -g vercel
-vercel
+CEREBRAS_API_KEY=your_key_here
 ```
 
-### Option B — GitHub Integration
-
-1. Push this repo to GitHub
-2. Go to [vercel.com](https://vercel.com) → **New Project**
-3. Import your GitHub repo
-4. Framework: **Vite** (auto-detected)
-5. Click **Deploy** ✅
-
-No environment variables required for the frontend.
-
----
-
-## 🐍 Python Backend Setup (Optional)
-
-For the real LSTM model (not the client-side demo):
+3. Run locally with Vercel routing + functions:
 
 ```bash
-cd backend/
-pip install -r requirements.txt
-
-# Train the model
-python train.py --intents data/intents.json --epochs 200
-
-# Start FastAPI server
-uvicorn app:app --reload --port 8000
+npx vercel dev
 ```
 
-Update `src/components/LiveDemo.jsx` to call `http://localhost:8000/chat` instead of the local classifier.
+4. Open:
 
----
+```txt
+http://localhost:3000
+```
 
-## 🧾 Intent JSON Format
+Note: `npm run dev` starts only Vite. For API route testing (`/api/chat`), prefer `vercel dev`.
+
+## Deployment (Vercel)
+
+1. Import this repo into Vercel.
+2. Set project Root Directory to the repository root.
+3. Add environment variable:
+   - `CEREBRAS_API_KEY`
+4. Redeploy.
+
+### Required env vars
+
+- `CEREBRAS_API_KEY` (server-side, required)
+
+## API Route
+
+### `POST /api/chat`
+
+Proxy endpoint for Cerebras chat completions.
+
+Request body (OpenAI-compatible):
 
 ```json
 {
-  "intents": [
-    {
-      "tag": "greeting",
-      "patterns": ["Hello", "Hi", "Hey", "Good morning"],
-      "responses": ["Hello! How can I help?", "Hi there!"]
-    }
-  ]
+  "model": "llama-3.3-70b",
+  "messages": [
+    { "role": "system", "content": "You are helpful." },
+    { "role": "user", "content": "Hello" }
+  ],
+  "max_tokens": 1024
 }
 ```
 
----
+Behavior:
+- Validates request shape
+- Uses server env key
+- Retries with fallback models if requested model is unavailable
+- Returns upstream response/error
 
-## 🛠️ Tech Stack
+## Common Errors and Fixes
 
-| Layer       | Technology                        |
-|-------------|-----------------------------------|
-| Frontend    | React 18, Tailwind CSS, Framer Motion |
-| ML Model    | TensorFlow/Keras LSTM             |
-| NLP         | NLTK (tokenize, lemmatize, BoW)   |
-| Backend API | FastAPI + Uvicorn                 |
-| Deployment  | Vercel (frontend), Railway/Render (API) |
-| CI/CD       | GitHub Actions                    |
+### `404 /api/chat` or `404 /api/chat.js`
 
----
+- Ensure latest commit is deployed.
+- Verify Vercel Root Directory points to this project root.
+- Confirm `api/chat.js` exists in deployed branch.
+- Hard refresh browser after deployment.
 
-## 📄 License
+### `401 Unauthorized`
 
-MIT — free to use, modify, and deploy.
+- `CEREBRAS_API_KEY` missing/invalid in Vercel.
+- Re-add key and redeploy.
+
+### `404 model_not_found`
+
+- Requested model is not available for your account.
+- Use supported models such as:
+  - `llama-3.3-70b`
+  - `llama3.1-70b`
+  - `llama3.1-8b`
+
+### Frontend works but chat falls back
+
+- API is unreachable or upstream timed out.
+- Check browser network tab and Vercel function logs.
+
+## Scripts
+
+```bash
+npm run dev      # Vite dev server
+npm run build    # Production build
+npm run preview  # Preview production build
+npm run lint     # ESLint
+```
+
+## License
+
+MIT
