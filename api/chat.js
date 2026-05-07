@@ -5,6 +5,17 @@ export default async function handler(req, res) {
   }
 
   try {
+    const apiKey =
+      process.env.CEREBRAS_API_KEY ||
+      process.env.CEREBRAS_API_TOKEN ||
+      process.env.VITE_CEREBRAS_API_KEY
+
+    if (!apiKey) {
+      return res.status(500).json({
+        error: 'Missing Cerebras API key on server. Set CEREBRAS_API_KEY in Vercel environment variables.',
+      })
+    }
+
     // Parse body if it's a string (Vercel sometimes doesn't auto-parse)
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body
 
@@ -12,12 +23,16 @@ export default async function handler(req, res) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.CEREBRAS_API_KEY}`,
+        'Authorization': `Bearer ${apiKey}`,
       },
       body: JSON.stringify(body),
     })
 
-    const data = await upstream.json()
+    const contentType = upstream.headers.get('content-type') || ''
+    const data = contentType.includes('application/json')
+      ? await upstream.json()
+      : { error: await upstream.text() }
+
     return res.status(upstream.status).json(data)
 
   } catch (err) {
