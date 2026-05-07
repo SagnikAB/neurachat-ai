@@ -1,13 +1,12 @@
 // src/components/LiveDemo.jsx
-// Full-featured chatbot — Gemini API with Google Search grounding, answers anything
+// Full-featured chatbot — Cerebras API (OpenAI-compatible), ultra-fast inference
 
 import { useState, useRef, useEffect } from 'react'
 import { motion, useInView, AnimatePresence } from 'framer-motion'
-import { Send, Bot, User, RotateCcw, Globe, Sparkles } from 'lucide-react'
+import { Send, Bot, User, RotateCcw, Sparkles } from 'lucide-react'
 
-const GEMINI_MODEL   = 'gemini-2.0-flash'
-const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY
-const SYSTEM_PROMPT  = `You are NeuraChat, a highly capable AI assistant powered by Gemini.
+const CEREBRAS_MODEL = 'llama3.3-70b'
+const SYSTEM_PROMPT  = `You are NeuraChat, a highly capable AI assistant powered by Cerebras.
 You can help with absolutely anything — coding, math, science, history, philosophy, creative writing,
 recipes, advice, travel, finance, health questions, language translation, debugging, brainstorming,
 jokes, and everything in between. Be thorough yet concise, friendly, and conversational.
@@ -17,38 +16,26 @@ Never refuse a reasonable request. Always try your best to help.`
 const SUGGESTIONS = [
   'Write me a poem about space 🚀',
   'Explain quantum computing simply',
-  'Current Bitcoin price?',
   'Give me a lasagna recipe',
   'Debug this: console.log(1 + "2")',
   'Best travel spots in Japan?',
-  'What happened in the news today?',
   'Tell me a joke',
+  'Explain recursion simply',
+  'Write a Python web scraper',
 ]
 
-async function callGemini(history) {
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`
-
-  // Convert history to Gemini's "contents" format
-  // Each entry: { role: 'user'|'model', parts: [{ text }] }
-  const contents = history.map(msg => ({
-    role: msg.role === 'assistant' ? 'model' : 'user',
-    parts: [{ text: msg.content }],
-  }))
-
-  const body = {
-    system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
-    contents,
-    tools: [{ google_search: {} }],  // Google Search grounding
-    generationConfig: {
-      maxOutputTokens: 2048,
-      temperature: 0.7,
-    },
-  }
-
-  const res = await fetch(endpoint, {
+async function callCerebras(history) {
+  const res = await fetch('/api/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
+    body: JSON.stringify({
+      model: CEREBRAS_MODEL,
+      max_tokens: 2048,
+      messages: [
+        { role: 'system', content: SYSTEM_PROMPT },
+        ...history,
+      ],
+    }),
   })
 
   if (!res.ok) {
@@ -57,26 +44,8 @@ async function callGemini(history) {
   }
 
   const data = await res.json()
-  const candidate = data.candidates?.[0]
-  if (!candidate) throw new Error('No response from Gemini.')
-
-  let text = ''
-  let usedSearch = false
-
-  for (const part of candidate.content?.parts ?? []) {
-    if (part.text) text += part.text
-  }
-
-  // Detect if Google Search grounding was used
-  if (candidate.groundingMetadata?.webSearchQueries?.length) {
-    usedSearch = true
-  }
-
-  return {
-    text: text.trim() || 'No response generated.',
-    usedSearch,
-    rawContent: candidate.content?.parts ?? [],
-  }
+  const text = data.choices?.[0]?.message?.content?.trim() || 'No response generated.'
+  return { text }
 }
 
 // Simple markdown-lite renderer: bold, inline code, line breaks
@@ -103,26 +72,25 @@ export default function LiveDemo() {
   const [messages, setMessages] = useState([
     {
       role: 'ai',
-      text: "Hey! I'm NeuraChat — ask me literally anything. Code, math, recipes, travel tips, news, creative writing, debugging, or just random questions. I've got you covered 🤙",
+      text: "Hey! I'm NeuraChat — ask me literally anything. Code, math, recipes, travel tips, creative writing, debugging, or just random questions. Powered by Cerebras for ultra-fast responses 🤙",
       id: 0,
-      usedSearch: false,
     },
   ])
-  const [history, setHistory]   = useState([])
-  const [input, setInput]       = useState('')
-  const [loading, setLoading]   = useState(false)
-  const [error, setError]       = useState('')
-  const bottomRef               = useRef(null)
-  const inputRef                = useRef(null)
-  const ref                     = useRef(null)
-  const isInView                = useInView(ref, { once: true, margin: '-80px' })
+  const [history, setHistory] = useState([])
+  const [input, setInput]     = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError]     = useState('')
+  const bottomRef             = useRef(null)
+  const inputRef              = useRef(null)
+  const ref                   = useRef(null)
+  const isInView              = useInView(ref, { once: true, margin: '-80px' })
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, loading])
 
-  const addMsg = (role, text, usedSearch = false) =>
-    setMessages(prev => [...prev, { role, text, usedSearch, id: Date.now() + Math.random() }])
+  const addMsg = (role, text) =>
+    setMessages(prev => [...prev, { role, text, id: Date.now() + Math.random() }])
 
   const send = async (text) => {
     const msg = (text ?? input).trim()
@@ -136,9 +104,8 @@ export default function LiveDemo() {
     setHistory(newHistory)
 
     try {
-      const { text: reply, usedSearch, rawContent } = await callGemini(newHistory)
-      addMsg('ai', reply, usedSearch)
-      // Store assistant turn using raw text for next-turn context
+      const { text: reply } = await callCerebras(newHistory)
+      addMsg('ai', reply)
       setHistory(h => [...h, { role: 'assistant', content: reply }])
     } catch (e) {
       setError(e.message || 'Something went wrong. Check your API key.')
@@ -154,7 +121,6 @@ export default function LiveDemo() {
       role: 'ai',
       text: "Fresh start! Ask me anything — I mean it, anything at all 🙂",
       id: Date.now(),
-      usedSearch: false,
     }])
     setHistory([])
     setInput('')
@@ -188,7 +154,7 @@ export default function LiveDemo() {
             Chat with <span className="text-gradient">NeuraChat</span>
           </h2>
           <p className="text-zinc-400">
-            Ask anything — coding, news, recipes, math, creative writing, and more
+            Ask anything — coding, recipes, math, creative writing, and more
           </p>
         </motion.div>
 
@@ -210,7 +176,7 @@ export default function LiveDemo() {
                 <div className="text-sm font-display font-600 text-white">NeuraChat</div>
                 <div className="text-xs text-zinc-500 font-mono flex items-center gap-1">
                   <span className="w-1.5 h-1.5 bg-brand-400 rounded-full animate-pulse" />
-                  Online · Answers anything
+                  Online · Ultra-fast · Cerebras
                 </div>
               </div>
             </div>
@@ -248,12 +214,6 @@ export default function LiveDemo() {
 
                   {/* Bubble */}
                   <div className={`max-w-[78%] ${msg.role === 'ai' ? 'chat-bubble-ai' : 'chat-bubble-user'}`}>
-                    {msg.role === 'ai' && msg.usedSearch && (
-                      <div className="flex items-center gap-1 text-[10px] text-brand-400/70 mb-1.5">
-                        <Globe size={9} />
-                        <span className="font-mono">searched the web</span>
-                      </div>
-                    )}
                     <span className="text-sm leading-relaxed">
                       {msg.role === 'ai' ? renderText(msg.text) : msg.text}
                     </span>
@@ -349,7 +309,7 @@ export default function LiveDemo() {
               </button>
             </div>
             <p className="text-[10px] text-zinc-700 font-mono mt-2 text-center">
-              Enter to send · Shift+Enter for new line · Powered by {GEMINI_MODEL}
+              Enter to send · Shift+Enter for new line · Powered by {CEREBRAS_MODEL}
             </p>
           </div>
         </motion.div>
@@ -357,7 +317,7 @@ export default function LiveDemo() {
         {/* API key note */}
         <p className="text-center text-xs text-zinc-600 font-mono mt-4">
           Requires{' '}
-          <code className="text-brand-500/80">VITE_GEMINI_API_KEY</code>
+          <code className="text-brand-500/80">CEREBRAS_API_KEY</code>
           {' '}in your <code className="text-brand-500/80">.env</code> — see README for setup
         </p>
       </div>
