@@ -1,18 +1,19 @@
 // src/components/TechStack.jsx
-// Scrolling marquee of technologies used
+// Scrolling marquee — fixed: uses Framer Motion animate instead of CSS animation
+// to avoid GPU layer thrashing that caused the black-out on Vercel
 
-import { motion, useInView } from 'framer-motion'
 import { useRef } from 'react'
+import { motion, useInView } from 'framer-motion'
 
 const TECH = [
   { name: 'Python 3.11',    color: '#3776AB' },
   { name: 'TensorFlow',     color: '#FF6F00' },
   { name: 'Keras',          color: '#D00000' },
   { name: 'NLTK',           color: '#22a666' },
-  { name: 'NumPy',          color: '#013243' },
+  { name: 'NumPy',          color: '#4DABCF' },
   { name: 'scikit-learn',   color: '#F7931E' },
   { name: 'FastAPI',        color: '#009688' },
-  { name: 'Uvicorn',        color: '#2C3E50' },
+  { name: 'Uvicorn',        color: '#8BC34A' },
   { name: 'React 18',       color: '#61DAFB' },
   { name: 'Tailwind CSS',   color: '#06B6D4' },
   { name: 'Framer Motion',  color: '#BB4FFF' },
@@ -21,24 +22,41 @@ const TECH = [
   { name: 'GitHub Actions', color: '#2088FF' },
 ]
 
-function Marquee({ items, reverse = false }) {
+// Pill chip component
+function Chip({ item }) {
+  return (
+    <div className="flex items-center gap-2.5 glass border border-white/8 rounded-xl
+                    px-5 py-3 whitespace-nowrap flex-shrink-0 select-none">
+      <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
+      <span className="text-sm font-mono text-zinc-300">{item.name}</span>
+    </div>
+  )
+}
+
+// One looping row — duplicates items to create seamless loop
+function MarqueeRow({ items, direction = 1, speed = 40 }) {
+  const doubled = [...items, ...items]
+  const totalWidth = items.length * 180 // approximate px per chip
+
   return (
     <div className="overflow-hidden relative">
-      <div className={`flex gap-4 ${reverse ? 'animate-[marqueeR_30s_linear_infinite]' : 'animate-[marquee_30s_linear_infinite]'} w-max`}>
-        {[...items, ...items].map((item, i) => (
-          <div
-            key={i}
-            className="flex items-center gap-2.5 glass border border-white/8 rounded-xl
-                       px-5 py-3 whitespace-nowrap flex-shrink-0"
-          >
-            <span
-              className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-              style={{ backgroundColor: item.color }}
-            />
-            <span className="text-sm font-mono text-zinc-300">{item.name}</span>
-          </div>
-        ))}
-      </div>
+      {/* Left/right fade masks */}
+      <div className="absolute left-0 top-0 bottom-0 w-24 z-10
+                      bg-gradient-to-r from-surface to-transparent pointer-events-none" />
+      <div className="absolute right-0 top-0 bottom-0 w-24 z-10
+                      bg-gradient-to-l from-surface to-transparent pointer-events-none" />
+
+      <motion.div
+        className="flex gap-4 w-max"
+        animate={{ x: direction > 0 ? [-totalWidth, 0] : [0, -totalWidth] }}
+        transition={{
+          duration: speed,
+          ease: 'linear',
+          repeat: Infinity,
+        }}
+      >
+        {doubled.map((item, i) => <Chip key={i} item={item} />)}
+      </motion.div>
     </div>
   )
 }
@@ -49,12 +67,6 @@ export default function TechStack() {
 
   return (
     <section id="tech" className="py-24 overflow-hidden" ref={ref}>
-      {/* Custom keyframes via style tag */}
-      <style>{`
-        @keyframes marquee  { 0% { transform: translateX(0) }  100% { transform: translateX(-50%) } }
-        @keyframes marqueeR { 0% { transform: translateX(-50%) } 100% { transform: translateX(0) } }
-      `}</style>
-
       <div className="max-w-7xl mx-auto px-6 lg:px-10">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
@@ -78,8 +90,8 @@ export default function TechStack() {
         transition={{ duration: 0.8, delay: 0.3 }}
         className="flex flex-col gap-4"
       >
-        <Marquee items={TECH.slice(0, 9)} />
-        <Marquee items={TECH.slice(5)}   reverse />
+        <MarqueeRow items={TECH}           direction={1} speed={45} />
+        <MarqueeRow items={[...TECH].reverse()} direction={-1} speed={38} />
       </motion.div>
     </section>
   )
