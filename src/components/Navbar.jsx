@@ -10,7 +10,6 @@ const NAV_LINKS = [
   { label: 'How It Works', href: '#how-it-works' },
   { label: 'Live Demo',  href: '#demo'         },
   { label: 'Tech Stack', href: '#tech'         },
-  { label: 'Reviews',    href: '#testimonials' },
 ]
 
 export default function Navbar() {
