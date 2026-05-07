@@ -23,25 +23,54 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Invalid request body: messages array is required.' })
     }
 
-    const upstream = await fetch(
-      'https://api.cerebras.ai/v1/chat/completions',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
+    const fallbackModels = ['llama-3.3-70b', 'llama3.1-70b', 'llama3.1-8b']
+    const requestedModel = body?.model
+    const modelsToTry = [
+      requestedModel,
+      ...fallbackModels.filter((m) => m !== requestedModel),
+    ].filter(Boolean)
+
+    let lastStatus = 500
+    let lastData = { error: 'Unknown upstream error.' }
+
+    for (const model of modelsToTry) {
+      const requestBody = { ...body, model }
+      const upstream = await fetch(
+        'https://api.cerebras.ai/v1/chat/completions',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify(requestBody),
+          signal: AbortSignal.timeout(18000),
         },
-        body: JSON.stringify(body),
-        signal: AbortSignal.timeout(18000),
-      },
-    )
+      )
 
-    const contentType = upstream.headers.get('content-type') || ''
-    const data = contentType.includes('application/json')
-      ? await upstream.json()
-      : { error: await upstream.text() }
+      const contentType = upstream.headers.get('content-type') || ''
+      const data = contentType.includes('application/json')
+        ? await upstream.json()
+        : { error: await upstream.text() }
 
-    return res.status(upstream.status).json(data)
+      if (upstream.ok) {
+        return res.status(200).json(data)
+      }
+
+      lastStatus = upstream.status
+      lastData = data
+
+      const modelNotFound = upstream.status === 404
+        && (data?.code === 'model_not_found'
+          || data?.type === 'not_found_error'
+          || String(data?.message || '').toLowerCase().includes('model'))
+
+      if (!modelNotFound) {
+        return res.status(upstream.status).json(data)
+      }
+    }
+
+    return res.status(lastStatus).json(lastData)
 
   } catch (err) {
     console.error('Handler error:', err)
