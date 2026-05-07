@@ -1,11 +1,10 @@
 // src/components/Features.jsx
 // Six-card feature grid with hover effects and icons
 
-import { motion } from 'framer-motion'
-import { useInView } from 'framer-motion'
+import { motion, useInView } from 'framer-motion'
 import { useRef } from 'react'
 import {
-  Brain, MessageSquare, Zap, Database,
+  Brain, Globe, Zap, Database,
   Shield, RefreshCw,
 } from 'lucide-react'
 import { staggerContainer, fadeUp } from '../utils/animations.js'
@@ -16,48 +15,48 @@ const FEATURES = [
     color: 'from-brand-500/20 to-brand-700/10',
     border: 'border-brand-500/20',
     iconColor: 'text-brand-300',
-    title: 'LSTM Neural Network',
-    desc: 'Bidirectional LSTM layers capture long-range sequential dependencies, enabling nuanced understanding of user intent across multi-turn conversations.',
+    title: 'Claude-Powered Intelligence',
+    desc: 'Built on Claude Sonnet — Anthropic\'s frontier model — delivering nuanced, context-aware responses across any domain with multi-turn conversation memory.',
   },
   {
-    icon: MessageSquare,
+    icon: Globe,
     color: 'from-violet-500/20 to-violet-700/10',
     border: 'border-violet-500/20',
     iconColor: 'text-violet-300',
-    title: 'NLTK Preprocessing',
-    desc: 'Tokenization, lemmatization, stopword removal, and POS tagging via NLTK pipelines ensure clean, structured input before inference.',
+    title: 'Real-Time Web Search',
+    desc: 'Integrated web search tool fires automatically when queries require current data — news, prices, scores, releases — going beyond static training knowledge.',
   },
   {
     icon: Zap,
     color: 'from-amber-500/20 to-amber-700/10',
     border: 'border-amber-500/20',
     iconColor: 'text-amber-300',
-    title: 'Sub-120ms Inference',
-    desc: 'Optimized TensorFlow Lite model export and caching layer delivers near-instant responses even on constrained hardware.',
+    title: 'Sub-500ms Responses',
+    desc: 'Direct API integration with streaming support delivers fast, fluid replies. No intermediate servers, no extra hops — just clean request-response cycles.',
   },
   {
     icon: Database,
     color: 'from-cyan-500/20 to-cyan-700/10',
     border: 'border-cyan-500/20',
     iconColor: 'text-cyan-300',
-    title: 'Custom Intent Datasets',
-    desc: 'Train on your own JSON intent files. Supports multi-label classification, fallback intents, and confidence thresholding out of the box.',
+    title: 'Full Conversation Memory',
+    desc: 'The complete message history is sent with every request, enabling genuine multi-turn conversations where the AI remembers context across the entire session.',
   },
   {
     icon: Shield,
     color: 'from-rose-500/20 to-rose-700/10',
     border: 'border-rose-500/20',
     iconColor: 'text-rose-300',
-    title: 'Retrieval-Based Safety',
-    desc: 'Purely retrieval-based responses mean no hallucination — the model only returns answers anchored in your training corpus.',
+    title: 'No Hallucinations on Facts',
+    desc: 'When web search is triggered, answers are grounded in live sources. The model cites retrieved content rather than guessing, dramatically reducing factual errors.',
   },
   {
     icon: RefreshCw,
     color: 'from-emerald-500/20 to-emerald-700/10',
     border: 'border-emerald-500/20',
     iconColor: 'text-emerald-300',
-    title: 'Continuous Re-training',
-    desc: 'One-command fine-tuning pipeline with automatic data augmentation, stratified splits, and validation metrics dashboard.',
+    title: 'Drop-in Upgradeable',
+    desc: 'Swap the system prompt, change the model string, or add MCP tools — the architecture is fully composable so your AI agent grows with your product.',
   },
 ]
 
@@ -117,11 +116,11 @@ export default function Features() {
           <h2 className="font-display text-4xl lg:text-5xl font-700 tracking-tight
                          text-white mb-4">
             Built for Developers,{' '}
-            <span className="text-gradient">Powered by Science</span>
+            <span className="text-gradient">Powered by Claude</span>
           </h2>
           <p className="text-zinc-400 text-lg max-w-2xl mx-auto">
-            Every component is engineered for production: from training pipelines to
-            deployment, NeuraChat handles the complexity so you can focus on your product.
+            Every component is engineered for production: real AI, live web data,
+            and a composable architecture you can extend in minutes.
           </p>
         </motion.div>
 

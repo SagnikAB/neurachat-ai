@@ -24,7 +24,7 @@ export default function Hero() {
               <span className="inline-flex items-center gap-2 glass px-4 py-1.5 rounded-full
                                text-xs font-mono text-brand-300 border border-brand-500/20">
                 <span className="w-1.5 h-1.5 bg-brand-400 rounded-full animate-pulse" />
-                LSTM · NLTK · Retrieval-Based NLP · v2.0
+                Claude API · Web Search · Multi-turn Memory · v3.0
               </span>
             </motion.div>
 
@@ -45,9 +45,9 @@ export default function Hero() {
               custom={0.2}
               className="text-zinc-400 text-lg leading-relaxed max-w-md"
             >
-              NeuraChat uses deep LSTM networks, NLTK preprocessing, and
-              intent classification to deliver instant, context-aware
-              conversational responses — trained on your data.
+              NeuraChat uses Claude — Anthropic's frontier AI — with real-time web
+              search to deliver instant, accurate, context-aware responses.
+              No hallucinations. No stale data.
             </motion.p>
 
             {/* CTAs */}
@@ -62,7 +62,7 @@ export default function Hero() {
                 <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
               </a>
               <a
-                href="https://github.com"
+                href="https://github.com/SagnikAB/neurachat-ai"
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex items-center gap-2 glass hover:bg-white/10

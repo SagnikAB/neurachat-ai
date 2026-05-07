@@ -3,30 +3,30 @@
 
 import { useRef } from 'react'
 import { motion, useInView } from 'framer-motion'
-import { FileText, Cpu, MessageCircle } from 'lucide-react'
+import { FileText, Globe, MessageCircle } from 'lucide-react'
 import { fadeUp, staggerContainer } from '../utils/animations.js'
 
 const STEPS = [
   {
     step: '01',
     icon: FileText,
-    title: 'Data Preprocessing',
-    desc: 'Raw text is tokenized with NLTK, lemmatized, and stripped of noise. Bag-of-words and TF-IDF vectors encode each sentence into model-ready tensors.',
-    detail: ['NLTK Tokenizer', 'Lemmatization', 'Stopword Removal', 'Bag-of-Words Encoding'],
+    title: 'Input & Context Building',
+    desc: 'User messages are captured and appended to a structured conversation history. The full multi-turn context is assembled into a Claude-compatible message array on every request.',
+    detail: ['Message Capture', 'History Assembly', 'System Prompt Injection', 'Token Budget Check'],
   },
   {
     step: '02',
-    icon: Cpu,
-    title: 'LSTM Training',
-    desc: 'A stacked LSTM + Dense network is trained on intent-labeled datasets. Categorical cross-entropy loss drives 98%+ classification accuracy.',
-    detail: ['Bidirectional LSTM', 'Dropout Regularization', 'Adam Optimizer', 'Softmax Output'],
+    icon: Globe,
+    title: 'Claude + Web Search',
+    desc: 'The request is sent to Claude Sonnet with a web_search tool attached. Claude decides autonomously whether to search the web — firing it for live data, skipping it for static knowledge.',
+    detail: ['Claude Sonnet API', 'Web Search Tool', 'Autonomous Tool Use', 'Source Grounding'],
   },
   {
     step: '03',
     icon: MessageCircle,
-    title: 'Intent Classification & Response',
-    desc: 'At inference, user input is vectorized, passed through the trained model, and the highest-confidence intent maps to a curated response pool.',
-    detail: ['Real-time Vectorization', 'Intent Matching', 'Confidence Scoring', 'Response Retrieval'],
+    title: 'Response & Memory Update',
+    desc: 'The assistant\'s full response — including any tool call blocks — is parsed, displayed, and appended to history. A web-search indicator lights up when live data was retrieved.',
+    detail: ['Content Block Parsing', 'Search Tag Display', 'History Persistence', 'Streaming Ready'],
   },
 ]
 
@@ -50,11 +50,11 @@ export default function HowItWorks() {
             How It Works
           </span>
           <h2 className="font-display text-4xl lg:text-5xl font-700 tracking-tight text-white mb-4">
-            From Raw Text to{' '}
-            <span className="text-gradient">Smart Answers</span>
+            From User Message to{' '}
+            <span className="text-gradient">Grounded Answer</span>
           </h2>
           <p className="text-zinc-400 text-lg max-w-xl mx-auto">
-            Three stages. Milliseconds of latency. Production-grade reliability.
+            Three stages. Real intelligence. Live data when it matters.
           </p>
         </motion.div>
 
@@ -78,7 +78,6 @@ export default function HowItWorks() {
                 custom={i * 0.1}
                 className="relative z-10"
               >
-                {/* Step card */}
                 <div className="glass rounded-2xl p-8 border border-white/8 hover:border-brand-500/30
                                 transition-all duration-300 hover:shadow-glass group">
                   {/* Step number + icon */}

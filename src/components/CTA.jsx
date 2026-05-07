@@ -32,14 +32,14 @@ export default function CTA() {
 
             <h2 className="font-display text-4xl lg:text-6xl font-800 tracking-tight
                            text-white mb-6 leading-tight">
-              Build Your AI Agent
+              Deploy Your AI Agent
               <br />
-              <span className="text-gradient">Starting Today.</span>
+              <span className="text-gradient">In Under 10 Minutes.</span>
             </h2>
 
             <p className="text-zinc-400 text-lg max-w-xl mx-auto mb-10 leading-relaxed">
-              Clone the repo, drop in your intent JSON, run one training command,
-              and deploy to Vercel. Your custom chatbot lives in under 30 minutes.
+              Clone the repo, add your Anthropic API key, and deploy to Vercel.
+              Real Claude intelligence with live web search — no model training required.
             </p>
 
             <div className="flex flex-wrap justify-center gap-4">
@@ -53,7 +53,7 @@ export default function CTA() {
                 <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
               </a>
               <a
-                href="https://github.com"
+                href="https://github.com/SagnikAB/neurachat-ai"
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex items-center gap-2 glass hover:bg-white/10
@@ -68,7 +68,7 @@ export default function CTA() {
 
             {/* Mini social proof */}
             <p className="text-xs text-zinc-600 mt-8 font-mono">
-              MIT License · Python + React · Deployable in &lt;30 min · Zero vendor lock-in
+              MIT License · Claude API · Web Search · React · Vercel · Zero vendor lock-in
             </p>
           </div>
         </motion.div>

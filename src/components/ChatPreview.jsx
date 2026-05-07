@@ -3,15 +3,17 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Bot, User } from 'lucide-react'
+import { Bot, User, Globe } from 'lucide-react'
 
 const CONVERSATION = [
-  { role: 'user', text: 'What is the capital of France?' },
-  { role: 'ai',   text: 'The capital of France is Paris — situated on the Seine River.' },
-  { role: 'user', text: 'How does LSTM help in NLP?' },
-  { role: 'ai',   text: 'LSTM networks capture long-range sequential dependencies, ideal for understanding conversational context.' },
-  { role: 'user', text: 'What is NLTK used for?' },
-  { role: 'ai',   text: 'NLTK handles tokenization, lemmatization, and stopword removal — preparing raw text for the model.' },
+  { role: 'user', text: 'What\'s the latest in AI today?' },
+  { role: 'ai',   text: 'Claude just released new model updates — let me search for the latest.', web: true },
+  { role: 'user', text: 'How does NeuraChat use web search?' },
+  { role: 'ai',   text: 'I call the web_search tool automatically when your question needs live data — prices, news, or recent releases.' },
+  { role: 'user', text: 'What is LSTM?' },
+  { role: 'ai',   text: 'LSTM (Long Short-Term Memory) is an RNN variant that captures long-range sequential dependencies — ideal for NLP tasks.' },
+  { role: 'user', text: 'Current Bitcoin price?' },
+  { role: 'ai',   text: 'Searching live markets now for the current BTC price…', web: true },
 ]
 
 export default function ChatPreview() {
@@ -75,7 +77,7 @@ export default function ChatPreview() {
           <span className="w-3 h-3 rounded-full bg-green-500/70" />
           <div className="flex-1 flex items-center justify-center gap-2 text-xs text-zinc-500 font-mono">
             <Bot size={12} className="text-brand-400" />
-            NeuraChat · LSTM Agent
+            NeuraChat · Claude + Web Search
             <span className="w-1.5 h-1.5 bg-brand-400 rounded-full animate-pulse" />
           </div>
         </div>
@@ -101,6 +103,12 @@ export default function ChatPreview() {
                     : <User size={13} className="text-zinc-300" />}
                 </div>
                 <div className={msg.role === 'ai' ? 'chat-bubble-ai' : 'chat-bubble-user'}>
+                  {msg.role === 'ai' && msg.web && (
+                    <div className="flex items-center gap-1 text-[10px] text-brand-400/70 mb-1">
+                      <Globe size={9} />
+                      <span className="font-mono">web search</span>
+                    </div>
+                  )}
                   {msg.text}
                 </div>
               </motion.div>
@@ -148,7 +156,7 @@ export default function ChatPreview() {
         transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
         className="absolute -top-4 -right-4 glass rounded-xl px-3 py-2 border border-brand-500/20 shadow-glass"
       >
-        <div className="text-xs font-mono text-brand-300">98.4% accuracy</div>
+        <div className="text-xs font-mono text-brand-300">Claude Sonnet</div>
       </motion.div>
 
       <motion.div
@@ -156,7 +164,9 @@ export default function ChatPreview() {
         transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
         className="absolute -bottom-4 -left-4 glass rounded-xl px-3 py-2 border border-brand-500/20 shadow-glass"
       >
-        <div className="text-xs font-mono text-brand-300">&lt;120ms response</div>
+        <div className="text-xs font-mono text-brand-300 flex items-center gap-1">
+          <Globe size={10} /> Live web search
+        </div>
       </motion.div>
     </div>
   )

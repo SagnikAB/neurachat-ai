@@ -6,20 +6,22 @@ import { useRef } from 'react'
 import { motion, useInView } from 'framer-motion'
 
 const TECH = [
-  { name: 'Python 3.11',    color: '#3776AB' },
-  { name: 'TensorFlow',     color: '#FF6F00' },
-  { name: 'Keras',          color: '#D00000' },
-  { name: 'NLTK',           color: '#22a666' },
-  { name: 'NumPy',          color: '#4DABCF' },
-  { name: 'scikit-learn',   color: '#F7931E' },
-  { name: 'FastAPI',        color: '#009688' },
-  { name: 'Uvicorn',        color: '#8BC34A' },
-  { name: 'React 18',       color: '#61DAFB' },
-  { name: 'Tailwind CSS',   color: '#06B6D4' },
-  { name: 'Framer Motion',  color: '#BB4FFF' },
-  { name: 'Docker',         color: '#2496ED' },
-  { name: 'Vercel',         color: '#ffffff' },
-  { name: 'GitHub Actions', color: '#2088FF' },
+  { name: 'Claude API',      color: '#D97706' },
+  { name: 'Python 3.11',     color: '#3776AB' },
+  { name: 'Web Search',      color: '#22a666' },
+  { name: 'React 18',        color: '#61DAFB' },
+  { name: 'TensorFlow',      color: '#FF6F00' },
+  { name: 'Tailwind CSS',    color: '#06B6D4' },
+  { name: 'NLTK',            color: '#22a666' },
+  { name: 'Framer Motion',   color: '#BB4FFF' },
+  { name: 'FastAPI',         color: '#009688' },
+  { name: 'Anthropic SDK',   color: '#D97706' },
+  { name: 'NumPy',           color: '#4DABCF' },
+  { name: 'Docker',          color: '#2496ED' },
+  { name: 'Vercel',          color: '#ffffff' },
+  { name: 'GitHub Actions',  color: '#2088FF' },
+  { name: 'Keras',           color: '#D00000' },
+  { name: 'Uvicorn',         color: '#8BC34A' },
 ]
 
 // Pill chip component
@@ -90,7 +92,7 @@ export default function TechStack() {
         transition={{ duration: 0.8, delay: 0.3 }}
         className="flex flex-col gap-4"
       >
-        <MarqueeRow items={TECH}           direction={1} speed={45} />
+        <MarqueeRow items={TECH}                direction={1}  speed={45} />
         <MarqueeRow items={[...TECH].reverse()} direction={-1} speed={38} />
       </motion.div>
     </section>

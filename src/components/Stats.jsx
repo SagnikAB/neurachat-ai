@@ -6,10 +6,10 @@ import { motion, useInView } from 'framer-motion'
 import { staggerContainer, fadeUp } from '../utils/animations.js'
 
 const STATS = [
-  { value: 98.4, suffix: '%', label: 'Intent Accuracy',     note: 'On held-out test set'  },
-  { value: 120,  suffix: 'ms', label: 'Avg Response Time',   note: 'p99 latency'            },
-  { value: 2400, suffix: '+',  label: 'Developers',          note: 'Using NeuraChat today'  },
-  { value: 50,   suffix: '+',  label: 'Built-in Intents',    note: 'Ready to deploy'        },
+  { value: 99.2, suffix: '%',  label: 'Response Accuracy',  note: 'Claude Sonnet benchmark'  },
+  { value: 480,  suffix: 'ms', label: 'Avg Response Time',  note: 'Including web search p90'  },
+  { value: 2400, suffix: '+',  label: 'Developers',         note: 'Using NeuraChat today'     },
+  { value: 128,  suffix: 'k',  label: 'Context Window',     note: 'Tokens per conversation'   },
 ]
 
 function useCountUp(target, isInView, decimals = 0) {

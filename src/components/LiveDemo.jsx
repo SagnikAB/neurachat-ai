@@ -1,74 +1,120 @@
 // src/components/LiveDemo.jsx
-// Interactive demo chatbot that simulates AI responses client-side
+// Real AI demo — Claude API with web search tool, styled to match NeuraChat theme
 
 import { useState, useRef, useEffect } from 'react'
 import { motion, useInView, AnimatePresence } from 'framer-motion'
-import { Send, Bot, User, RotateCcw } from 'lucide-react'
+import { Send, Bot, User, RotateCcw, Globe } from 'lucide-react'
 
-// Simulated intent responses (mirrors what the Python LSTM model would return)
-const INTENT_RESPONSES = {
-  greeting:  ['Hello! How can I assist you today?', 'Hi there! What can I help you with?'],
-  farewell:  ['Goodbye! Have a great day!', 'See you soon! Take care.'],
-  weather:   ['I can check the weather for you! Which city are you in?'],
-  python:    ['Python is a high-level, interpreted programming language known for its readability and versatility.'],
-  lstm:      ['LSTM (Long Short-Term Memory) is a type of recurrent neural network designed to learn long-term dependencies in sequential data.'],
-  nltk:      ['NLTK (Natural Language Toolkit) is a Python library for working with human language data — tokenization, parsing, classification, and more.'],
-  ml:        ['Machine Learning enables systems to learn from data and improve automatically without being explicitly programmed.'],
-  default:   ['That\'s an interesting question! My LSTM model is still learning. Try asking about Python, NLTK, or LSTM.', 'I\'m not confident in my answer for that. Could you rephrase?'],
-}
-
-function classify(text) {
-  const t = text.toLowerCase()
-  if (/\b(hi|hello|hey|greetings)\b/.test(t)) return 'greeting'
-  if (/\b(bye|goodbye|see you|farewell)\b/.test(t)) return 'farewell'
-  if (/weather/.test(t)) return 'weather'
-  if (/python/.test(t)) return 'python'
-  if (/lstm/.test(t)) return 'lstm'
-  if (/nltk/.test(t)) return 'nltk'
-  if (/machine.?learn|ml\b/.test(t)) return 'ml'
-  return 'default'
-}
-
-function pick(arr) { return arr[Math.floor(Math.random() * arr.length)] }
+const CLAUDE_MODEL   = 'claude-sonnet-4-20250514'
+const MAX_TOKENS     = 1024
+const SYSTEM_PROMPT  = `You are NeuraChat, an intelligent AI assistant built by Sagnik using Claude.
+You have access to real-time web search. Use it automatically when the user asks about:
+- Current events, news, or prices
+- Recent releases, updates, or scores
+- Any fact that may have changed recently
+Be concise (under 250 words), accurate, and conversational. Format clearly.`
 
 const SUGGESTIONS = [
-  'What is LSTM?', 'Explain NLTK', 'Hello!', 'What is Python?', 'Tell me about ML',
+  'Latest AI news today',
+  'What is LSTM?',
+  'Explain NLTK',
+  'Current Bitcoin price',
+  'Best Python NLP libraries',
 ]
+
+async function callClaude(messages) {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: CLAUDE_MODEL,
+      max_tokens: MAX_TOKENS,
+      system: SYSTEM_PROMPT,
+      messages,
+      tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+    }),
+  })
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error(err.error?.message || `API error ${res.status}`)
+  }
+
+  const data = await res.json()
+  let text = ''
+  let usedSearch = false
+
+  for (const block of data.content) {
+    if (block.type === 'text') text += block.text
+    if (block.type === 'tool_use' && block.name === 'web_search') usedSearch = true
+  }
+
+  return {
+    text: text.trim() || 'No response generated.',
+    usedSearch,
+    raw: data.content,
+  }
+}
 
 export default function LiveDemo() {
   const [messages, setMessages] = useState([
-    { role: 'ai', text: 'Hi! I\'m NeuraChat — powered by LSTM + NLTK. Ask me anything about AI, Python, or NLP!', id: 0 }
+    {
+      role: 'ai',
+      text: "Hi! I'm NeuraChat — now powered by Claude with real-time web search. Ask me anything about AI, Python, NLP, or what's happening in the world right now.",
+      id: 0,
+      usedSearch: false,
+    },
   ])
-  const [input, setInput]     = useState('')
-  const [loading, setLoading] = useState(false)
-  const bottomRef             = useRef(null)
-  const ref                   = useRef(null)
-  const isInView              = useInView(ref, { once: true, margin: '-80px' })
+  const [history, setHistory]   = useState([])
+  const [input, setInput]       = useState('')
+  const [loading, setLoading]   = useState(false)
+  const [error, setError]       = useState('')
+  const bottomRef               = useRef(null)
+  const inputRef                = useRef(null)
+  const ref                     = useRef(null)
+  const isInView                = useInView(ref, { once: true, margin: '-80px' })
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, loading])
 
-  const send = (text) => {
-    const msg = text ?? input.trim()
+  const addMsg = (role, text, usedSearch = false) =>
+    setMessages(prev => [...prev, { role, text, usedSearch, id: Date.now() + Math.random() }])
+
+  const send = async (text) => {
+    const msg = (text ?? input).trim()
     if (!msg || loading) return
     setInput('')
-
-    const userMsg = { role: 'user', text: msg, id: Date.now() }
-    setMessages(prev => [...prev, userMsg])
+    setError('')
     setLoading(true)
+    addMsg('user', msg)
 
-    setTimeout(() => {
-      const intent = classify(msg)
-      const reply = pick(INTENT_RESPONSES[intent])
-      setMessages(prev => [...prev, { role: 'ai', text: reply, id: Date.now() + 1 }])
+    const newHistory = [...history, { role: 'user', content: msg }]
+    setHistory(newHistory)
+
+    try {
+      const { text: reply, usedSearch, raw } = await callClaude(newHistory)
+      addMsg('ai', reply, usedSearch)
+      setHistory(h => [...h, { role: 'assistant', content: raw }])
+    } catch (e) {
+      setError(e.message || 'Something went wrong. Check your API key.')
+      setHistory(h => h.slice(0, -1))
+    } finally {
       setLoading(false)
-    }, 700 + Math.random() * 600)
+      inputRef.current?.focus()
+    }
   }
 
   const reset = () => {
-    setMessages([{ role: 'ai', text: 'Conversation reset! Ask me anything.', id: Date.now() }])
+    setMessages([{
+      role: 'ai',
+      text: 'Conversation reset! Ask me anything.',
+      id: Date.now(),
+      usedSearch: false,
+    }])
+    setHistory([])
     setInput('')
+    setError('')
   }
 
   return (
@@ -90,7 +136,7 @@ export default function LiveDemo() {
             Chat with <span className="text-gradient">NeuraChat</span>
           </h2>
           <p className="text-zinc-400">
-            Client-side intent classification — same logic as the Python LSTM model.
+            Powered by Claude · Real-time web search · Multi-turn memory
           </p>
         </motion.div>
 
@@ -112,7 +158,7 @@ export default function LiveDemo() {
                 <div className="text-sm font-display font-600 text-white">NeuraChat Agent</div>
                 <div className="text-xs text-zinc-500 font-mono flex items-center gap-1">
                   <span className="w-1.5 h-1.5 bg-brand-400 rounded-full animate-pulse" />
-                  Online · LSTM model active
+                  Claude · Web Search enabled
                 </div>
               </div>
             </div>
@@ -143,11 +189,18 @@ export default function LiveDemo() {
                       ? 'bg-brand-500/20 border border-brand-500/30'
                       : 'bg-zinc-700 border border-zinc-600'}`}>
                     {msg.role === 'ai'
-                      ? <Bot size={13} className="text-brand-300" />
+                      ? <Bot  size={13} className="text-brand-300" />
                       : <User size={13} className="text-zinc-300" />}
                   </div>
+
                   <div className={msg.role === 'ai' ? 'chat-bubble-ai' : 'chat-bubble-user'}>
-                    {msg.text}
+                    {msg.role === 'ai' && msg.usedSearch && (
+                      <div className="flex items-center gap-1 text-[10px] text-brand-400/70 mb-1.5">
+                        <Globe size={10} />
+                        <span className="font-mono">web search used</span>
+                      </div>
+                    )}
+                    <span className="whitespace-pre-wrap">{msg.text}</span>
                   </div>
                 </motion.div>
               ))}
@@ -175,6 +228,21 @@ export default function LiveDemo() {
             <div ref={bottomRef} />
           </div>
 
+          {/* Error */}
+          <AnimatePresence>
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="mx-4 mb-1 px-3 py-2 text-xs text-red-400 bg-red-500/10
+                           border border-red-500/20 rounded-lg font-mono"
+              >
+                ⚠ {error}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           {/* Suggestions */}
           <div className="px-5 pb-3 flex gap-2 flex-wrap border-t border-white/5 pt-3">
             {SUGGESTIONS.map((s) => (
@@ -194,15 +262,17 @@ export default function LiveDemo() {
           <div className="p-4 border-t border-white/5">
             <div className="flex gap-3">
               <input
+                ref={inputRef}
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && send()}
+                onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && send()}
                 placeholder="Type your message…"
+                disabled={loading}
                 className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5
                            text-sm text-zinc-200 placeholder-zinc-600 outline-none
                            focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/30
-                           transition-all font-body"
+                           transition-all font-body disabled:opacity-50"
               />
               <button
                 onClick={() => send()}
@@ -216,7 +286,25 @@ export default function LiveDemo() {
               </button>
             </div>
           </div>
+
+          {/* Footer badges */}
+          <div className="px-5 pb-3 flex items-center gap-3 flex-wrap">
+            <span className="text-[10px] font-mono text-zinc-600 flex items-center gap-1">
+              <Globe size={9} /> Real-time web search
+            </span>
+            <span className="text-zinc-700">·</span>
+            <span className="text-[10px] font-mono text-zinc-600">🧠 Multi-turn memory</span>
+            <span className="text-zinc-700">·</span>
+            <span className="text-[10px] font-mono text-zinc-600">⚡ {CLAUDE_MODEL}</span>
+          </div>
         </motion.div>
+
+        {/* API key note */}
+        <p className="text-center text-xs text-zinc-600 font-mono mt-4">
+          Requires{' '}
+          <code className="text-brand-500/80">VITE_ANTHROPIC_API_KEY</code>
+          {' '}in your <code className="text-brand-500/80">.env</code> — see README for setup
+        </p>
       </div>
     </section>
   )
