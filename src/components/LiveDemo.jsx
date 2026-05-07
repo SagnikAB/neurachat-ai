@@ -1,18 +1,16 @@
 // src/components/LiveDemo.jsx
-// Full-featured chatbot — Claude API with web search, answers anything
+// Full-featured chatbot — Gemini API with Google Search grounding, answers anything
 
 import { useState, useRef, useEffect } from 'react'
 import { motion, useInView, AnimatePresence } from 'framer-motion'
 import { Send, Bot, User, RotateCcw, Globe, Sparkles } from 'lucide-react'
 
-const CLAUDE_MODEL  = 'claude-sonnet-4-20250514'
-const MAX_TOKENS    = 2048
-const SYSTEM_PROMPT = `You are NeuraChat, a highly capable AI assistant powered by Claude.
+const GEMINI_MODEL   = 'gemini-2.0-flash'
+const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY
+const SYSTEM_PROMPT  = `You are NeuraChat, a highly capable AI assistant powered by Gemini.
 You can help with absolutely anything — coding, math, science, history, philosophy, creative writing,
 recipes, advice, travel, finance, health questions, language translation, debugging, brainstorming,
-jokes, and everything in between. You have access to real-time web search — use it automatically
-whenever the user asks about current events, recent news, live prices, sports scores, new releases,
-or any fact that may have changed recently. Be thorough yet concise, friendly, and conversational.
+jokes, and everything in between. Be thorough yet concise, friendly, and conversational.
 Use markdown-style formatting when it helps clarity (bullet points, code blocks, bold text).
 Never refuse a reasonable request. Always try your best to help.`
 
@@ -27,17 +25,30 @@ const SUGGESTIONS = [
   'Tell me a joke',
 ]
 
-async function callClaude(messages) {
-  const res = await fetch('/api/chat', {
+async function callGemini(history) {
+  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`
+
+  // Convert history to Gemini's "contents" format
+  // Each entry: { role: 'user'|'model', parts: [{ text }] }
+  const contents = history.map(msg => ({
+    role: msg.role === 'assistant' ? 'model' : 'user',
+    parts: [{ text: msg.content }],
+  }))
+
+  const body = {
+    system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
+    contents,
+    tools: [{ google_search: {} }],  // Google Search grounding
+    generationConfig: {
+      maxOutputTokens: 2048,
+      temperature: 0.7,
+    },
+  }
+
+  const res = await fetch(endpoint, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: CLAUDE_MODEL,
-      max_tokens: MAX_TOKENS,
-      system: SYSTEM_PROMPT,
-      messages,
-      tools: [{ type: 'web_search_20250305', name: 'web_search' }],
-    }),
+    body: JSON.stringify(body),
   })
 
   if (!res.ok) {
@@ -46,18 +57,25 @@ async function callClaude(messages) {
   }
 
   const data = await res.json()
+  const candidate = data.candidates?.[0]
+  if (!candidate) throw new Error('No response from Gemini.')
+
   let text = ''
   let usedSearch = false
 
-  for (const block of data.content) {
-    if (block.type === 'text') text += block.text
-    if (block.type === 'tool_use' && block.name === 'web_search') usedSearch = true
+  for (const part of candidate.content?.parts ?? []) {
+    if (part.text) text += part.text
+  }
+
+  // Detect if Google Search grounding was used
+  if (candidate.groundingMetadata?.webSearchQueries?.length) {
+    usedSearch = true
   }
 
   return {
     text: text.trim() || 'No response generated.',
     usedSearch,
-    raw: data.content,
+    rawContent: candidate.content?.parts ?? [],
   }
 }
 
@@ -65,7 +83,6 @@ async function callClaude(messages) {
 function renderText(text) {
   const lines = text.split('\n')
   return lines.map((line, li) => {
-    // Bold **text**
     const parts = line.split(/(\*\*[^*]+\*\*|`[^`]+`)/g)
     return (
       <span key={li}>
@@ -119,9 +136,10 @@ export default function LiveDemo() {
     setHistory(newHistory)
 
     try {
-      const { text: reply, usedSearch, raw } = await callClaude(newHistory)
+      const { text: reply, usedSearch, rawContent } = await callGemini(newHistory)
       addMsg('ai', reply, usedSearch)
-      setHistory(h => [...h, { role: 'assistant', content: raw }])
+      // Store assistant turn using raw text for next-turn context
+      setHistory(h => [...h, { role: 'assistant', content: reply }])
     } catch (e) {
       setError(e.message || 'Something went wrong. Check your API key.')
       setHistory(h => h.slice(0, -1))
@@ -206,7 +224,7 @@ export default function LiveDemo() {
             </button>
           </div>
 
-          {/* Messages — taller, full-height feel */}
+          {/* Messages */}
           <div className="h-[480px] overflow-y-auto px-5 py-5 flex flex-col gap-5 no-scrollbar">
             <AnimatePresence mode="popLayout">
               {messages.map((msg) => (
@@ -281,7 +299,7 @@ export default function LiveDemo() {
             )}
           </AnimatePresence>
 
-          {/* Suggestion chips — broader topics */}
+          {/* Suggestion chips */}
           <div className="px-4 pb-3 pt-3 border-t border-white/5 flex gap-2 flex-wrap">
             {SUGGESTIONS.map((s) => (
               <button
@@ -297,7 +315,7 @@ export default function LiveDemo() {
             ))}
           </div>
 
-          {/* Input — textarea for multi-line */}
+          {/* Input */}
           <div className="p-4 border-t border-white/5">
             <div className="flex gap-3 items-end">
               <textarea
@@ -331,7 +349,7 @@ export default function LiveDemo() {
               </button>
             </div>
             <p className="text-[10px] text-zinc-700 font-mono mt-2 text-center">
-              Enter to send · Shift+Enter for new line · Powered by {CLAUDE_MODEL}
+              Enter to send · Shift+Enter for new line · Powered by {GEMINI_MODEL}
             </p>
           </div>
         </motion.div>
@@ -339,7 +357,7 @@ export default function LiveDemo() {
         {/* API key note */}
         <p className="text-center text-xs text-zinc-600 font-mono mt-4">
           Requires{' '}
-          <code className="text-brand-500/80">VITE_ANTHROPIC_API_KEY</code>
+          <code className="text-brand-500/80">VITE_GEMINI_API_KEY</code>
           {' '}in your <code className="text-brand-500/80">.env</code> — see README for setup
         </p>
       </div>
