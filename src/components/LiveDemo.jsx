@@ -25,20 +25,32 @@ const SUGGESTIONS = [
 ]
 
 async function callCerebras(history) {
-  const res = await fetch('/api/chat', {
+  const payload = {
+    model: CEREBRAS_MODEL,
+    max_tokens: 2048,
+    messages: [
+      { role: 'system', content: SYSTEM_PROMPT },
+      ...history,
+    ],
+  }
+
+  let res = await fetch('/api/chat', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      model: CEREBRAS_MODEL,
-      max_tokens: 2048,
-      messages: [
-        { role: 'system', content: SYSTEM_PROMPT },
-        ...history,
-      ],
-    }),
+    body: JSON.stringify(payload),
   })
+
+  if (res.status === 404) {
+    res = await fetch('/api/chat.js', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    })
+  }
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({}))
