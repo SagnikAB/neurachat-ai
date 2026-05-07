@@ -7,7 +7,7 @@ import { Bot, User, Globe } from 'lucide-react'
 
 const CONVERSATION = [
   { role: 'user', text: 'What\'s the latest in AI today?' },
-  { role: 'ai',   text: 'Claude just released new model updates — let me search for the latest.', web: true },
+  { role: 'ai',   text: 'New Cerebras model updates just dropped — let me search for the latest.', web: true },
   { role: 'user', text: 'How does NeuraChat use web search?' },
   { role: 'ai',   text: 'I call the web_search tool automatically when your question needs live data — prices, news, or recent releases.' },
   { role: 'user', text: 'What is LSTM?' },
@@ -77,7 +77,7 @@ export default function ChatPreview() {
           <span className="w-3 h-3 rounded-full bg-green-500/70" />
           <div className="flex-1 flex items-center justify-center gap-2 text-xs text-zinc-500 font-mono">
             <Bot size={12} className="text-brand-400" />
-            NeuraChat · Claude + Web Search
+            NeuraChat · Cerebras + Web Search
             <span className="w-1.5 h-1.5 bg-brand-400 rounded-full animate-pulse" />
           </div>
         </div>
@@ -156,7 +156,7 @@ export default function ChatPreview() {
         transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
         className="absolute -top-4 -right-4 glass rounded-xl px-3 py-2 border border-brand-500/20 shadow-glass"
       >
-        <div className="text-xs font-mono text-brand-300">Claude Sonnet</div>
+        <div className="text-xs font-mono text-brand-300">Cerebras API</div>
       </motion.div>
 
       <motion.div

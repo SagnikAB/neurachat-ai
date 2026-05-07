@@ -32,7 +32,7 @@ export default function Footer() {
               </span>
             </a>
             <p className="text-zinc-500 text-sm leading-relaxed max-w-xs mb-6">
-              An open-source AI conversational agent powered by Claude and
+              An open-source AI conversational agent powered by the Cerebras API and
               real-time web search — accurate, context-aware, and production-ready.
             </p>
             <div className="flex gap-3">
@@ -83,7 +83,7 @@ export default function Footer() {
             © {new Date().getFullYear()} NeuraChat. MIT License.
           </p>
           <p className="text-xs text-zinc-600">
-            Built with Claude API · Web Search · React · Tailwind CSS · Deployed on Vercel
+            Built with Cerebras API · Web Search · React · Tailwind CSS · Deployed on Vercel
           </p>
         </div>
       </div>

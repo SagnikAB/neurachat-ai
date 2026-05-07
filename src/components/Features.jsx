@@ -15,8 +15,8 @@ const FEATURES = [
     color: 'from-brand-500/20 to-brand-700/10',
     border: 'border-brand-500/20',
     iconColor: 'text-brand-300',
-    title: 'Claude-Powered Intelligence',
-    desc: 'Built on Claude Sonnet — Anthropic\'s frontier model — delivering nuanced, context-aware responses across any domain with multi-turn conversation memory.',
+    title: 'Model-Powered Intelligence',
+    desc: 'Built on the Cerebras API to deliver nuanced, context-aware responses across domains with strong multi-turn conversation memory.',
   },
   {
     icon: Globe,
@@ -116,7 +116,7 @@ export default function Features() {
           <h2 className="font-display text-4xl lg:text-5xl font-700 tracking-tight
                          text-white mb-4">
             Built for Developers,{' '}
-            <span className="text-gradient">Powered by Claude</span>
+            <span className="text-gradient">Powered by Cerebras</span>
           </h2>
           <p className="text-zinc-400 text-lg max-w-2xl mx-auto">
             Every component is engineered for production: real AI, live web data,

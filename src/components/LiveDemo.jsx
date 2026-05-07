@@ -5,7 +5,7 @@ import { useState, useRef, useEffect } from 'react'
 import { motion, useInView, AnimatePresence } from 'framer-motion'
 import { Send, Bot, User, RotateCcw, Sparkles } from 'lucide-react'
 
-const CEREBRAS_MODEL = 'llama-3.3-70b'
+const CEREBRAS_MODEL = 'llama3.1-8b'
 const SYSTEM_PROMPT  = `You are NeuraChat, a highly capable AI assistant powered by Cerebras.
 You can help with absolutely anything — coding, math, science, history, philosophy, creative writing,
 recipes, advice, travel, finance, health questions, language translation, debugging, brainstorming,

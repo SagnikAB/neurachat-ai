@@ -11,7 +11,7 @@ const STEPS = [
     step: '01',
     icon: FileText,
     title: 'Input & Context Building',
-    desc: 'User messages are captured and appended to a structured conversation history. The full multi-turn context is assembled into a Claude-compatible message array on every request.',
+    desc: 'User messages are captured and appended to a structured conversation history. The full multi-turn context is assembled into a model-compatible message array on every request.',
     detail: ['Message Capture', 'History Assembly', 'System Prompt Injection', 'Token Budget Check'],
   },
   {

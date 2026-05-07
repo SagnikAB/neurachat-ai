@@ -6,7 +6,7 @@ import { useRef } from 'react'
 import { motion, useInView } from 'framer-motion'
 
 const TECH = [
-  { name: 'Claude API',      color: '#D97706' },
+  { name: 'Cerebras API',    color: '#D97706' },
   { name: 'Python 3.11',     color: '#3776AB' },
   { name: 'Web Search',      color: '#22a666' },
   { name: 'React 18',        color: '#61DAFB' },
@@ -15,7 +15,7 @@ const TECH = [
   { name: 'NLTK',            color: '#22a666' },
   { name: 'Framer Motion',   color: '#BB4FFF' },
   { name: 'FastAPI',         color: '#009688' },
-  { name: 'Anthropic SDK',   color: '#D97706' },
+  { name: 'Cerebras SDK',    color: '#D97706' },
   { name: 'NumPy',           color: '#4DABCF' },
   { name: 'Docker',          color: '#2496ED' },
   { name: 'Vercel',          color: '#ffffff' },

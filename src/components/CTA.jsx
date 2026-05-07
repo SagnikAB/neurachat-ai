@@ -38,8 +38,8 @@ export default function CTA() {
             </h2>
 
             <p className="text-zinc-400 text-lg max-w-xl mx-auto mb-10 leading-relaxed">
-              Clone the repo, add your Anthropic API key, and deploy to Vercel.
-              Real Claude intelligence with live web search — no model training required.
+              Clone the repo, add your Cerebras API key, and deploy to Vercel.
+              Real-time AI with live web search — no model training required.
             </p>
 
             <div className="flex flex-wrap justify-center gap-4">
@@ -68,7 +68,7 @@ export default function CTA() {
 
             {/* Mini social proof */}
             <p className="text-xs text-zinc-600 mt-8 font-mono">
-              MIT License · Claude API · Web Search · React · Vercel · Zero vendor lock-in
+              MIT License · Cerebras API · Web Search · React · Vercel · Zero vendor lock-in
             </p>
           </div>
         </motion.div>
