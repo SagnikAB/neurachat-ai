@@ -25,9 +25,12 @@ const SUGGESTIONS = [
 ]
 
 async function callCerebras(history) {
-  const res = await fetch('/api/chat', {
+  const res = await fetch('https://api.cerebras.ai/v1/chat/completions', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${import.meta.env.VITE_CEREBRAS_API_KEY}`,
+    },
     body: JSON.stringify({
       model: CEREBRAS_MODEL,
       max_tokens: 2048,
@@ -47,7 +50,6 @@ async function callCerebras(history) {
   const text = data.choices?.[0]?.message?.content?.trim() || 'No response generated.'
   return { text }
 }
-
 // Simple markdown-lite renderer: bold, inline code, line breaks
 function renderText(text) {
   const lines = text.split('\n')
