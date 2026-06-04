@@ -23,7 +23,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Invalid request body: messages array is required.' })
     }
 
-    const fallbackModels = ['llama-3.3-70b', 'llama3.1-70b', 'llama3.1-8b']
+    const fallbackModels = ['gpt-oss-120b', 'zai-glm-4.7']
     const requestedModel = body?.model
     const modelsToTry = [
       requestedModel,
@@ -34,7 +34,12 @@ export default async function handler(req, res) {
     let lastData = { error: 'Unknown upstream error.' }
 
     for (const model of modelsToTry) {
-      const requestBody = { ...body, model }
+      const { max_tokens: legacyMaxTokens, ...restBody } = body
+      const requestBody = {
+        ...restBody,
+        model,
+        max_completion_tokens: body.max_completion_tokens ?? legacyMaxTokens,
+      }
       const upstream = await fetch(
         'https://api.cerebras.ai/v1/chat/completions',
         {
@@ -63,7 +68,7 @@ export default async function handler(req, res) {
       const modelNotFound = upstream.status === 404
         && (data?.code === 'model_not_found'
           || data?.type === 'not_found_error'
-          || String(data?.message || '').toLowerCase().includes('model'))
+          || String(data?.message || data?.error || '').toLowerCase().includes('model'))
 
       if (!modelNotFound) {
         return res.status(upstream.status).json(data)

@@ -52,19 +52,19 @@ npm install
 CEREBRAS_API_KEY=your_key_here
 ```
 
-3. Run locally with Vercel routing + functions:
+3. Run locally:
 
 ```bash
-npx vercel dev
+npm run dev
 ```
 
 4. Open:
 
 ```txt
-http://localhost:3000
+http://localhost:5173
 ```
 
-Note: `npm run dev` starts only Vite. For API route testing (`/api/chat`), prefer `vercel dev`.
+Note: the Vite dev server includes a local `/api/chat` middleware that calls the same handler used by Vercel.
 
 ## Deployment (Vercel)
 
@@ -88,12 +88,12 @@ Request body (OpenAI-compatible):
 
 ```json
 {
-  "model": "llama-3.3-70b",
+  "model": "gpt-oss-120b",
   "messages": [
     { "role": "system", "content": "You are helpful." },
     { "role": "user", "content": "Hello" }
   ],
-  "max_tokens": 1024
+  "max_completion_tokens": 1024
 }
 ```
 
@@ -121,9 +121,8 @@ Behavior:
 
 - Requested model is not available for your account.
 - Use supported models such as:
-  - `llama-3.3-70b`
-  - `llama3.1-70b`
-  - `llama3.1-8b`
+  - `gpt-oss-120b`
+  - `zai-glm-4.7`
 
 ### Frontend works but chat falls back
 

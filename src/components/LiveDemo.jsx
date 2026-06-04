@@ -5,7 +5,7 @@ import { useState, useRef, useEffect } from 'react'
 import { motion, useInView, AnimatePresence } from 'framer-motion'
 import { Send, Bot, User, RotateCcw, Sparkles } from 'lucide-react'
 
-const CEREBRAS_MODEL = 'llama3.1-8b'
+const CEREBRAS_MODEL = 'gpt-oss-120b'
 const SYSTEM_PROMPT  = `You are NeuraChat, a highly capable AI assistant powered by Cerebras.
 You can help with absolutely anything — coding, math, science, history, philosophy, creative writing,
 recipes, advice, travel, finance, health questions, language translation, debugging, brainstorming,
@@ -58,7 +58,7 @@ Quick answer about "${safe}":
 async function callCerebras(history) {
   const payload = {
     model: CEREBRAS_MODEL,
-    max_tokens: 2048,
+    max_completion_tokens: 2048,
     messages: [
       { role: 'system', content: SYSTEM_PROMPT },
       ...history,
@@ -73,7 +73,12 @@ async function callCerebras(history) {
 
       if (!res.ok) {
         const err = await res.json().catch(() => ({}))
-        const statusError = err.error?.message || `API error ${res.status}`
+        const providerMessage =
+          err.error?.message ||
+          err.message ||
+          err.error ||
+          err.code
+        const statusError = providerMessage || `API error ${res.status}`
         lastError = `${endpoint}: ${statusError}`
         continue
       }
